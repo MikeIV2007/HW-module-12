@@ -126,16 +126,10 @@ class Record:
 
 class AddressBook(UserDict):
 
-    # with open(file_name, "wb") as f:
-    # pickle.dump(hotels, f)
-
-    # with open(file_name, "rb") as f:
-    # load_hotels = pickle.load(f)
-
     def load_data(self):
         try:
             with open('address_book.bin', "rb") as file:
-                self = pickle.load(file)
+                self.data = pickle.load(file)
                 print ('\nAddress book loaded successfully!')
                 print (self.data)
         except FileNotFoundError:
@@ -146,7 +140,8 @@ class AddressBook(UserDict):
   
         with open('address_book.bin', "wb") as file:
             print ('\nAll data saved successfully!')
-            pickle.dump(self, file)
+            pickle.dump(self.data, file)
+            print ('150', self.data)
 
     def add_record(self, record: Record):
         self.data[str(record.name)] = record
