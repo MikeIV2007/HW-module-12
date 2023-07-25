@@ -141,7 +141,6 @@ class AddressBook(UserDict):
         with open('address_book.bin', "wb") as file:
             print ('\nAll data saved successfully!')
             pickle.dump(self.data, file)
-            print ('150', self.data)
 
     def add_record(self, record: Record):
         self.data[str(record.name)] = record

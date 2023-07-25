@@ -104,6 +104,7 @@ def phone_command(*args):
 
 
 def exit_command(*args):
+    address_book.save_data()
     return '\nGood bye! Have a nice day!\n'
 
 
