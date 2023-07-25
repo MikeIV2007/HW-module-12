@@ -6,7 +6,7 @@ def format_phone_number(func):
         elif len(result) == 10:
             new_phone = '+38(' + result[:3] + ')' + result[3:6] + '-' + result[6:8] + '-' + result[8:10]
         else:
-            return ''
+            return None
         
         return new_phone
     return inner

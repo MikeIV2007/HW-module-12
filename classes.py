@@ -30,14 +30,10 @@ class Phone(Field):
     
     @value.setter
     def value(self, value):
-
         sanytized_ph = sanitize_phone_number(value)
-
-        if sanytized_ph == '':          
-            self.__value = ''
-            return self.__value
         self.__value = sanytized_ph
         return self.__value
+    
 
 class Birthday(Field):
     def __init__(self, value) -> None:
@@ -67,7 +63,7 @@ class Record:
     def __init__(self, name: Name, phone: Phone = None, birthday: Birthday = None) -> None:
         self.name = name
         if phone == None:
-            self.phones = phone
+            self.phones = None
         else:
             self.phones = []
             self.phones.append(phone)
@@ -114,13 +110,13 @@ class Record:
             return f'\n{delta} days until the next birthday of {self.name}'
         
     def __str__(self) -> str:
-       
+        
         if (self.phones == None or self.phones == []) and self.birthday == None:
-            return f"{self.name}; Unknown; Uncknown"
+            return f"{self.name}; None; None"
         if self.phones == None or self.phones == []:
-            return f"{self.name}; Unknown; {self.birthday.value}"
+            return f"{self.name}; None; {self.birthday.value}"
         if self.birthday == None:
-            return f"{self.name}; {', '.join(str(p) for p in self.phones)}; Unknown"
+            return f"{self.name}; {', '.join(str(p) for p in self.phones)}; None"
         return f"{self.name}; {', '.join(str(p) for p in self.phones)}; {str(self.birthday.value)}"
 
 
@@ -131,21 +127,31 @@ class AddressBook(UserDict):
             with open('address_book.bin', "rb") as file:
                 self.data = pickle.load(file)
                 print ('\nAddress book loaded successfully!')
-                print (self.data)
+
         except FileNotFoundError:
             print ('\nAddress book is empty!')
-
     
     def save_data(self):
   
         with open('address_book.bin', "wb") as file:
-            print ('\nAll data saved successfully!')
             pickle.dump(self.data, file)
 
     def add_record(self, record: Record):
         self.data[str(record.name)] = record
         self.save_data()
         return f"\nContact <<< {record} >>> added successfully!"
+    
+    def search_sample(self, sample: str):
+        found_records_list = []
+        for name, rec in self.data.items():
+            phones = ' '.join(str(p) for p in rec.phones)
+            user_data_str = f"{name} {phones} {str(rec.birthday.value)}"
+ 
+            if sample.lower() in user_data_str.lower():
+                found_records_list.append(rec)
+            else:
+                continue
+        return found_records_list
     
     def iterator(self, n):
 
@@ -154,18 +160,22 @@ class AddressBook(UserDict):
         for name, record in self.data.items():
             user_data = []
             user_name = name
-            if record.birthday:
+            if record.birthday != None:
                 user_birthday = record.birthday.value
             else:
-                user_birthday = 'Unknown'
+                user_birthday = 'None'
 
-            phones_str = 'Unknown'
+            phones_str = 'None'
             user_phones_list = []
             user_phones= record.phones
-            if record.phones != None:
+
+            if record.phones == None or record.phones == [] :
+                phones_str = 'None'
+            else:
                 for phone in user_phones:
                     user_phones_list.append(phone.value)
-                phones_str = ' ,'.join(user_phones_list)
+                phones_str = ' ,'.join(user_phones_list).strip()                
+                
             user_data = [user_name, phones_str, user_birthday]
             data_list.append(user_data)
             count += 1
@@ -189,8 +199,6 @@ if __name__ == '__main__':
     #phone = ' 1234567891111234'
     phone = Phone(phone)
     print (phone.value)
-
-
 
     # #birthday = Birthday('2000-12-15')
     # birthday = Birthday('2000-12-1')

@@ -2,11 +2,11 @@ import re
 from rich import print
 from rich.table import Table
 from classes import AddressBook, Name, Phone, Record, Birthday
-#import pickle
 
 I = 1
 
 address_book = AddressBook()
+
 
 def table_of_commands():
     table = Table(title='\nALL VALID COMMANDS:\nAll entered data must be devided by gap!\n* Phone number must have 10 or 12 digits!')
@@ -27,21 +27,6 @@ def table_of_commands():
     table.add_row('help', '-', '-', '-','Printing table of commands')
 
     return table
-
-
-# def load_data():
-#     try:
-#         with open('address_book.bin', "rb") as file:
-#             pickle.load(address_book, file)
-#             print ('\nAddress book loaded successfully!')
-#     except FileNotFoundError:
-#         print ('\nAddress book is empty!')
-
-    
-# def save_data()-> None:
-#     with open('address_book.bin', "wb") as file:
-#         print ('\nAll data saved successfully!')
-#         address_book = pickle.dump(file)
 
 
 def input_error(func):
@@ -66,13 +51,14 @@ def add_command(*args):
     
     phone = Phone(args[1])
     
-    if phone.value == '':
+    if phone.value == None:
         return f'\nPhone number {args[1]} is hot correct!\nPhone must have 10 or 12 digites!'
     
     rec: Record = address_book.get(str(name))
 
     if rec:
-        return rec.add_phone(phone)
+        rec.add_phone(phone)
+        return address_book.add_record(rec)
     rec = Record(name, phone)
     return address_book.add_record(rec)
 
@@ -86,7 +72,8 @@ def delete_phone_command(*args):
     record: Record = address_book.get(str(name))
 
     if record:
-        return record.delete_pone(phone_to_delete)
+        record.delete_pone(phone_to_delete)
+        return address_book.add_record(record)
     return f'\nContact {name} not found in address book!'
 
 
@@ -113,13 +100,13 @@ def show_all_command(*args):
     if len(address_book.data) == 0:
         return '\nAddress Book is empty!'
     
-    n = 5
+    n = 10
     k = 1
 
     try:
         n = int(args[0])
     except ValueError:
-        print (f'\nEnterd number of pages <<< {args[0]} >>> does not represent a valid integer!\nDefault number of records N = {n} will be used')
+        print (f'\nEnterd number of pages <<< {args[0]} >>> does not represent a valid integer!\nDefault number of records N = {n} is used')
 
     for block in address_book.iterator(n):
         
@@ -132,7 +119,7 @@ def show_all_command(*args):
         print (table)
         k += 1
 
-    return "\nEnd of address book"
+    return "\nEnd of address book."
 
 
 def help_command(*args):
@@ -154,7 +141,8 @@ def birthday_command(*args):
     rec: Record = address_book.get(str(name))
 
     if rec:
-        return rec.add_birthday(birthday)
+        rec.add_birthday(birthday)
+        return address_book.add_record(rec)
     rec = Record(name, birthday = birthday)
     return address_book.add_record(rec)
 
@@ -167,6 +155,28 @@ def days_to_birthday_command(*args):
         if name == args[0]:
             record: Record = record
             return record.days_to_birthday()
+        
+        
+def search_command(*args):
+    sample = args[0]
+
+    if args[0] == '':
+        return '\nMissing sample for search!'
+    
+    found_records_list = address_book.search_sample(sample)
+
+    if len(found_records_list) > 0:
+                
+        table = Table(title=f'\nALL FOUND RECORDS ACCORDING TO SAMPLE <<< {sample} >>>')
+        table.add_column('Name', justify='left')
+        table.add_column("Phone number", justify="left")
+        table.add_column("Birthday", justify="left")
+        for item in found_records_list:
+            phones = ', '.join(str(p) for p in item.phones)
+            table.add_row(str(item.name), phones, str(item.birthday.value) )
+        return table
+    else:
+        return f'There is now any record according to sample {sample}'
     
 
 COMMANDS = {
@@ -178,7 +188,8 @@ COMMANDS = {
     help_command: ('help',),
     hello_command: ('hello',),
     birthday_command: ('birthday',),
-    days_to_birthday_command: ('days to birthday',)
+    days_to_birthday_command: ('days to birthday',),
+    search_command: ('search',)
 }
 
 
@@ -229,7 +240,7 @@ def main():
         I += 1
 
     while True:
- 
+
         user_input = (input(f'\nEnter command, please!\n\n>>>')).strip()
         
         command, user_info = parser(user_input)
@@ -249,10 +260,12 @@ def main():
             elif COMMANDS[command][0] == 'show all':     
                 data = (user_info,)
 
+            elif COMMANDS[command][0] == 'search':     
+                data = (user_info,) 
+
             else:
                 name, phone = get_user_name(user_info)
                 if len (phone) > 0:
-                    phone = phone
                     data = (name, phone)
                 else:
                     phone = ''
@@ -289,7 +302,7 @@ if __name__ == "__main__":
 # help
 # phone
 # add Bill
-# ADD Bill +380(67)333-43-5
+# ADD Bill +380(67)333-43-5 # not correct
 # ADD Bill +380673334354
 # Append Bill +380673331111
 # add
@@ -297,9 +310,10 @@ if __name__ == "__main__":
 # BirthDaY Bill 2002-05-30
 # Days To Birthday Bill
 # DeLete Bill +380(67)333-43-54
-# ADD Bill Jonson +380(67)333-43-5
+# ADD Bill Jonson +380(67)333-43-57
 # Append Bill Jonson +380(67)333-99-88
 # PhoNE Bill Jonson
+# BirthDaY Bill Jonson 2002-05-30
 # DeleTe Bill Jonson +380(67)333-43-5
 # +380(67)282-8-313
 # CHange Mike Jonn +380(67)111-41-77
@@ -323,3 +337,4 @@ if __name__ == "__main__":
 # add mike 123123-12-3
 # delete mike 123123-12-3
 # phone mike 123123-12-3
+# birthday mike 1972-05-21
