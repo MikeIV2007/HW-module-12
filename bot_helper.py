@@ -162,6 +162,9 @@ def birthday_command(*args):
             print (f"\nThe birthday <<< {str(rec.birthday.value)} >>> for contact <<< {name} >>> was replaced by <<< {str(birthday.value)} >>>")
             rec.add_birthday(birthday)
             return address_book.add_record(rec)
+        else:
+            rec.add_birthday(birthday)
+            return address_book.add_record(rec)
         
     rec = Record(name, birthday = birthday)
     return address_book.add_record(rec)
