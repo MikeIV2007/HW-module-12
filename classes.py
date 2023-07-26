@@ -32,7 +32,6 @@ class Phone(Field):
     def value(self, value):
         sanytized_ph = sanitize_phone_number(value)
         self.__value = sanytized_ph
-        return self.__value
     
 
 class Birthday(Field):
@@ -51,11 +50,9 @@ class Birthday(Field):
         try:
             birthday_datetime = datetime.strptime(str(value), format_str).date()
             self.__value = birthday_datetime
-            return self.__value
             
         except:
             self.__value= None
-            return self.__value
         
         
 class Record:
@@ -71,28 +68,21 @@ class Record:
 
     
     def add_phone(self, phone: Phone):
+
         if self.phones == None:
             self.phones = []
             self.phones.append(phone)
-        if self.phones == None or phone.value not in [p.value for p in self.phones]:
-            self.phones.append(phone)
-            return f"\nPhone number {phone} to contact {self.name} is added successfully!"
-        return f"\nThe phone number {phone} for {self.name} is already in adress book!"
-    
+
+        self.phones.append(phone)
 
     def delete_pone(self, phone_to_delete):
         for phone in self.phones:
             if phone.value == phone_to_delete.value:
                 self.phones.remove(phone)
-                return f'\nPhone number {phone.value} for {self.name} removed successfully!'
-        return f"\nPhone {phone_to_delete} not in the phones list of the contact {self.name}"
+                print (f'\nPhone number <<< {phone.value} >>> for <<< {self.name} >>> removed successfully!')
     
     def add_birthday(self, birthday: Birthday):
-
-        if self.birthday == None:
-            self.birthday = birthday
-            return f"\nBirthday {self.birthday.value} to contact {self.name} is added successfully!"
-        return f"\nThe {birthday} for {self.name} is already in adress book!"
+        self.birthday = birthday
     
     def days_to_birthday(self):
 
@@ -103,11 +93,11 @@ class Record:
         if delta > 0:
             return f'\n{delta} days until the next birthday of {self.name}'
         elif delta == 0:
-            return f'\n{self.name} birthday is today!'
+            return f'\n<<< {self.name} >>> birthday is today <<< {date_now} >>>!'
         else:
             birthday_next_year = datetime(date_now.year + 1, self.birthday.value.month, self.birthday.value.day).date()
             delta = (birthday_next_year - date_now).days
-            return f'\n{delta} days until the next birthday of {self.name}'
+            return f'\n<<< {delta} >>> days until the next birthday of <<< {self.name} >>>'
         
     def __str__(self) -> str:
         
@@ -126,7 +116,6 @@ class AddressBook(UserDict):
         try:
             with open('address_book.bin', "rb") as file:
                 self.data = pickle.load(file)
-                print ('\nAddress book loaded successfully!')
 
         except FileNotFoundError:
             print ('\nAddress book is empty!')
@@ -144,11 +133,25 @@ class AddressBook(UserDict):
     def search_sample(self, sample: str):
         found_records_list = []
         for name, rec in self.data.items():
-            phones = ' '.join(str(p) for p in rec.phones)
-            user_data_str = f"{name} {phones} {str(rec.birthday.value)}"
+
+            if rec.phones != None and rec.phones != []:
+                phones = ' '.join(str(p) for p in rec.phones)
+            else:
+                phones = 'None'
+            
+            if rec.birthday != None:
+                birthday  = str(rec.birthday.value)
+            else:
+                birthday = 'None'
+
+            user_data_str = f"{name} {phones} {birthday}"
  
             if sample.lower() in user_data_str.lower():
-                found_records_list.append(rec)
+                user_data_dict = {}
+                user_data_dict['name'] = name
+                user_data_dict['phones'] = phones
+                user_data_dict['birthday'] = birthday
+                found_records_list.append(user_data_dict)
             else:
                 continue
         return found_records_list

@@ -22,7 +22,8 @@ def table_of_commands():
     table.add_row('birthday', 'Existing name', '-', 'YYYY-MM-DD', 'Add birthday')
     table.add_row('days to birthday', 'Existing name', '-', '-', 'Sow days to birthday')
     table.add_row('phone', 'Existing name', '-', '-', 'Getting phone number')
-    table.add_row('show all / show all N', '-', '-', '-', 'Getting Address Book/ N - quantity of records on th page')
+    table.add_row('show all / show all + N', '-', '-', '-', 'Getting Address Book/ N - quantity of records on the page')
+    table.add_row('search + sample', '-', '-', '-', 'searching <<< sumple >>> in address book')
     table.add_row('good bye / close / exit', '-', '-', '-', 'Exit')
     table.add_row('help', '-', '-', '-','Printing table of commands')
 
@@ -52,13 +53,24 @@ def add_command(*args):
     phone = Phone(args[1])
     
     if phone.value == None:
-        return f'\nPhone number {args[1]} is hot correct!\nPhone must have 10 or 12 digites!'
+        return f'\nPhone number <<< {args[1]} >>> is hot correct!\nPhone must have 10 or 12 digites!'
     
     rec: Record = address_book.get(str(name))
 
     if rec:
-        rec.add_phone(phone)
-        return address_book.add_record(rec)
+
+        if rec.phones == None:
+            rec.add_phone(phone)
+            return address_book.add_record(rec)
+        if rec.phones == []:
+            rec.add_phone(phone)
+            return address_book.add_record(rec)
+        if phone.value not in [p.value for p in rec.phones]:
+            rec.add_phone(phone)
+            return address_book.add_record(rec)
+
+        return f"\nThe phone number <<< {phone} >>> for <<< {rec.name} >>> is already in adress book!"
+
     rec = Record(name, phone)
     return address_book.add_record(rec)
 
@@ -72,9 +84,11 @@ def delete_phone_command(*args):
     record: Record = address_book.get(str(name))
 
     if record:
+        if phone_to_delete.value not in [p.value for p in record.phones]:
+            return f"\nPhone <<< {phone_to_delete.value} >>> not in the phones list of the contact <<< {record.name} >>>"
         record.delete_pone(phone_to_delete)
         return address_book.add_record(record)
-    return f'\nContact {name} not found in address book!'
+    return f'\nContact <<< {name} >>> not found in address book!'
 
 
 def phone_command(*args):
@@ -84,10 +98,10 @@ def phone_command(*args):
     for name, record in address_book.data.items():
         if name == args[0]:
             if record.phones == []:
-                return (f'\nContact {name} doesn\'t have any phone!')
+                return (f'\nContact <<< {name} >>> doesn\'t have any phone!')
             phones = ", ".join(str(phone) for phone in record.phones)
-            return (f'\nPhone number(s) of {name} is(are): {phones}')
-    return f'\nContact {args[0]} not found in address book!'
+            return (f'\nPhone number(s) of <<< {name} >>> is(are): <<< {phones} >>>')
+    return f'\nContact <<< {args[0]} >>> not found in address book!'
 
 
 def exit_command(*args):
@@ -102,11 +116,11 @@ def show_all_command(*args):
     
     n = 10
     k = 1
-
-    try:
-        n = int(args[0])
-    except ValueError:
-        print (f'\nEnterd number of pages <<< {args[0]} >>> does not represent a valid integer!\nDefault number of records N = {n} is used')
+    if len(args[0]) > 0:
+        try:
+            n = int(args[0])
+        except ValueError:
+            print (f'\nEnterd number <<< {args[0]} >>> of pages does not represent a valid integer!\nDefault number of records N = {n} is used')
 
     for block in address_book.iterator(n):
         
@@ -137,12 +151,18 @@ def birthday_command(*args):
     birthday = Birthday(args[1])
 
     if birthday.value == None:
-        return f'\nBirthday {args[1]} is not correct!'
+        return f'\nBirthday <<< {args[1]} >>> is not correct!'
     rec: Record = address_book.get(str(name))
 
     if rec:
-        rec.add_birthday(birthday)
-        return address_book.add_record(rec)
+
+        if rec.birthday !=None and rec.birthday.value == birthday.value:
+            return f"\nThe birthday <<< {str(birthday.value)} >>> for contact <<< {name} >>> is already in adress book!"
+        elif rec.birthday !=None and rec.birthday.value != birthday.value:
+            print (f"\nThe birthday <<< {str(rec.birthday.value)} >>> for contact <<< {name} >>> was replaced by <<< {str(birthday.value)} >>>")
+            rec.add_birthday(birthday)
+            return address_book.add_record(rec)
+        
     rec = Record(name, birthday = birthday)
     return address_book.add_record(rec)
 
@@ -155,7 +175,7 @@ def days_to_birthday_command(*args):
         if name == args[0]:
             record: Record = record
             return record.days_to_birthday()
-        
+    return f"\n Cpntact with name <<< {args[0]} >>> not found!"    
         
 def search_command(*args):
     sample = args[0]
@@ -172,11 +192,10 @@ def search_command(*args):
         table.add_column("Phone number", justify="left")
         table.add_column("Birthday", justify="left")
         for item in found_records_list:
-            phones = ', '.join(str(p) for p in item.phones)
-            table.add_row(str(item.name), phones, str(item.birthday.value) )
+            table.add_row(item['name'], item['phones'], item['birthday'] )
         return table
     else:
-        return f'There is now any record according to sample {sample}'
+        return f'\nThere is now any record according to sample <<< {sample} >>>'
     
 
 COMMANDS = {
@@ -207,8 +226,10 @@ def get_user_name(user_info: str )-> tuple:
                 user_info = user_info[match_name.span()[1]:].strip()
                 user_data = user_info
             else:
-                return '\nName is not correct! Try again!'
-
+                print (f'\nName <<< {i} >>> is not correct! Try again!')
+                user_data = ('', '')
+                return user_data
+        
 
     if len(name_list)>=1:
         name = ' '.join(name_list)
@@ -284,6 +305,7 @@ def main():
 if __name__ == "__main__":
     main()
 
+#birthday bi;;
 # add Bill +380673334354
 # add Billy +380673331111
 # add Bill Jonson +380(67)333-99-88
